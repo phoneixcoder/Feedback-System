@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     fullName: {
       type: String,
       required: true,
-      unique: true,
+      default: "N/A"
     },
     email: {
       type: String,
@@ -56,7 +56,7 @@ userSchema.pre("save", async function (next) {
   if (!user.isModified("password")) return next();
 
   try {
-    const salt = await bcrypt.genSalt();
+    const salt = 10;
     user.password = await bcrypt.hash(user.password, salt);
     next();
   } catch (error) {
@@ -66,7 +66,12 @@ userSchema.pre("save", async function (next) {
 
 // Compare the given password with the hashed password in the database
 userSchema.methods.comparePassword = async function (password) {
-  return bcrypt.compare(password, this.password);
+  try {
+    return await bcrypt.compare(password, this.password);
+  } catch (error) {
+    console.error("Error comparing password:", error);
+    throw error;
+  }
 };
 
 const User = mongoose.model("User", userSchema);

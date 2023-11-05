@@ -10,8 +10,8 @@ const register = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({ message: "Email already exists" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ fullName, email, password: hashedPassword, role });
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ fullName, email, password: password, role });
     await user.save();
     res.status(201).json({ message: "Registration successful" });
   } catch (error) {
@@ -53,10 +53,11 @@ const login = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     const passwordMatch = await user.comparePassword(password);
+  
     if (!passwordMatch) {
       return res.status(401).json({ message: "Incorrect password" });
     }
-    const token = jwt.sign({ userId: user._id, email: user.email, }, process.env.SECRET_KEY, {
+    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role}, process.env.SECRET_KEY, {
       expiresIn: "2 days",
     });
     res.status(200).json({ token });

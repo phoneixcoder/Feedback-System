@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Loading from "./Components/Loader/Loading";
 import Layout from "./Components/Layout/Layout";
 import Login from "./Pages/Login/Login";
+import Course from "./Pages/Course/Course";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
     path: "/login",
     element: <Login />,
   },
+  {
+    path: "/feedback/course",
+    element: <Course/>
+  }
 ]);
 
 function App() {

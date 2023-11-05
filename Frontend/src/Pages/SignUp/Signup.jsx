@@ -7,15 +7,28 @@ import Fun from "../../assests/Signup/fun.png";
 import Blob from "../../assests/Signup/blob.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../../Redux/Actions/Auth/authAction";
-import axios from "axios";
+import {
+  registerUser,
+  sendOTP,
+  verifyOTP,
+  completeProfile,
+} from "../../Redux/Actions/Auth/authAction";
+import Loading from "../../Components/Loader/Loading";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const Signup = () => {
   const [active, setActive] = useState(1);
   const [time, setTime] = useState(120);
   const navigate = useNavigate();
-  const { loading, userInfo, error, success } = useSelector(
-    (state) => state.auth
-  );
+  const {
+    loading,
+    userInfo,
+    error,
+    success,
+    isCompleted,
+    otpSent,
+    otpVerified,
+  } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -33,6 +46,34 @@ const Signup = () => {
     };
   }, [time]);
 
+  useEffect(() => {
+    if (isCompleted == false) {
+      if (otpSent == false) {
+        dispatch(sendOTP(formikUserDetails.values.email));
+        if (error) {
+          toast.error(error, {
+            autoClose: 1500,
+          });
+        } else {
+          toast.success("OTP sent successfully!", {
+            autoClose: 1500,
+          });
+        }
+      }
+      if (otpSent == true) {
+        setActive(2);
+      }
+      if (otpVerified == true) {
+        setActive(3);
+      } else {
+        console.log(error);
+      }
+    }
+    if (isCompleted == true) {
+      navigate("/login");
+    }
+  }, [isCompleted, otpSent, otpVerified, success]);
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -46,7 +87,7 @@ const Signup = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      name: "",
+      fullName: "",
       role: "",
     },
     validationSchema: Yup.object({
@@ -59,40 +100,12 @@ const Signup = () => {
       confirmPassword: Yup.string()
         .oneOf([Yup.ref("password")], "Passwords must match")
         .required("Confirm Password is required"),
-      name: Yup.string().required("Name is required"),
+      fullName: Yup.string().required("Name is required"),
       role: Yup.string().required("Role is required"),
-      // phoneNumber: Yup.number()
-      //   .typeError("That doesn't look like a Mobile number")
-      //   .positive("A Mobile number can't start with a minus")
-      //   .integer("A Mobile number can't include a decimal point")
-      //   .min(10)
-      //   .required("A Mobile number is required"),
-      // registrationNumber: Yup.number()
-      //   .typeError("That doesn't look like a Registration number")
-      //   .positive("A Registration number can't start with a minus")
-      //   .integer("A Registration number can't include a decimal point")
-      //   .required("A Registration number is required"),
     }),
     onSubmit: async () => {
       try {
-        const apiUrl = `http://localhost:4000/auth/register`;
-        const requestOptions = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: "tilak",
-          // mode: 'no-cors
-        };
-
-        const response = await fetch(apiUrl, requestOptions);
-
-        if (!response.ok) {
-          const errorMessage = await response.json();
-          return rejectWithValue(errorMessage.message);
-        }
-        return response.json();
-        // setActive(2);
+        dispatch(registerUser(formikUserDetails.values));
       } catch (err) {
         console.log(err);
       }
@@ -113,10 +126,13 @@ const Signup = () => {
     }),
     onSubmit: async () => {
       try {
-        console.log(formikOtp.values);
-        setActive(3);
-      } catch (error) {
-        console.log(error.message);
+        const formData = {
+          email: formikUserDetails.values.email,
+          otp: formikOtp.values.OTP,
+        };
+        dispatch(verifyOTP(formData));
+      } catch (err) {
+        console.log(err);
       }
     },
   });
@@ -154,13 +170,15 @@ const Signup = () => {
     }),
     onSubmit: async () => {
       try {
-        console.log(formikUserDetails2.values);
-        navigate("/");
-      } catch (error) {
-        console.log(error.message);
+        const formData = formikUserDetails2.values;
+        formData.email = formikUserDetails.values.email;
+        dispatch(completeProfile(formikUserDetails2.values));
+      } catch (err) {
+        console.log(err);
       }
     },
   });
+
   return (
     <>
       <div className="flex w-full flex-row h-[100vh]">
@@ -187,8 +205,8 @@ const Signup = () => {
                   <h2 className="text-[16px] font-medium">Full Name</h2>
                   <InputField
                     type="text"
-                    {...formikUserDetails.getFieldProps("name")}
-                    error={formikUserDetails.errors.name}
+                    {...formikUserDetails.getFieldProps("fullName")}
+                    error={formikUserDetails.errors.fullName}
                     cls={"w-full"}
                   />
                 </div>
@@ -200,6 +218,7 @@ const Signup = () => {
                     className="py-[8px] px-[20px] rounded-xl h-10 focus:outline-none w-full text-sm"
                     {...formikUserDetails.getFieldProps("role")}
                   >
+                    <option value="" label="Select" />
                     <option value="student" label="Student" />
                     <option value="faculty" label="Faculty" />
                     <option value="parent" label="Parent" />
@@ -238,12 +257,18 @@ const Signup = () => {
                   cls={"w-full"}
                 />
               </div>
-              <button
-                className="w-[50%] bg-[#CB4C96]  text-white font-medium text-base rounded-[12px] py-3 mt-6"
-                type="submit"
-              >
-                Sign Up Here
-              </button>
+              {loading ? (
+                <div className="w-[50%] bg-[#CB4C96] rounded-[12px] h-14 flex items-center justify-center mt-6">
+                  <Loading height="" />
+                </div>
+              ) : (
+                <button
+                  className="w-[50%] bg-[#CB4C96]  text-white font-medium text-base rounded-[12px] h-14 items-center justify-center  mt-6"
+                  type="submit"
+                >
+                  Sign up here
+                </button>
+              )}
               <p className="my-4">or</p>
               <p className="text-base font-medium">
                 Already Have An Account?{" "}
@@ -269,12 +294,18 @@ const Signup = () => {
                   cls={"w-full"}
                 />
               </div>
-              <button
-                className="w-[50%] bg-[#CB4C96]  text-white font-medium text-base rounded-[12px] py-3 mt-6"
-                type="submit"
-              >
-                Submit OTP
-              </button>
+              {loading ? (
+                <div className="w-[50%] bg-[#CB4C96] rounded-[12px] h-14 flex items-center justify-center mt-6">
+                  <Loading height="" />
+                </div>
+              ) : (
+                <button
+                  className="w-[50%] bg-[#CB4C96]  text-white font-medium text-base rounded-[12px] h-14 items-center justify-center  mt-6"
+                  type="submit"
+                >
+                  Submit
+                </button>
+              )}
               <p className="font-semibold italic text-red-500 mt-4">
                 {time !== 0 ? (
                   `Resend In ${formatTime(time)}`
@@ -377,12 +408,18 @@ const Signup = () => {
                   </div>
                 </div>
               </div>
-              <button
-                className="w-[50%] bg-[#CB4C96]  text-white font-medium text-base rounded-[12px] py-3 mt-6"
-                type="submit"
-              >
-                {"Continue Here --->"}
-              </button>
+              {loading ? (
+                <div className="w-[50%] bg-[#CB4C96] rounded-[12px] h-14 flex items-center justify-center mt-6">
+                  <Loading height="" />
+                </div>
+              ) : (
+                <button
+                  className="w-[50%] bg-[#CB4C96]  text-white font-medium text-base rounded-[12px] h-14 items-center justify-center  mt-6"
+                  type="submit"
+                >
+                  Continue
+                </button>
+              )}
             </form>
           )}
         </div>
@@ -406,6 +443,7 @@ const Signup = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 };
