@@ -141,8 +141,8 @@ const Layout = (props) => {
       </div>
 
       <div
-        className={`flex flex-col h-[100vh] relative ${
-          path === "/" ? "w-[70%]" : "w-[90%] ml-[5%]"
+        className={`flex flex-col h-[100vh] relative overflow-y-scroll no-scrollbar ${
+          path === "/" ? "w-[70%]" : "w-[91%] ml-[5%]"
         }`}
       >
         <div className="flex justify-between px-8 w-[100%] border border-b-2 h-[60px] sticky top-0 left-0 bg-white">
@@ -171,7 +171,7 @@ const Layout = (props) => {
       </div>
       <div
         className={`flex ${
-          path === "/" ? "w-[16%]" : "w-[5%] overflow-hidden"
+          path === "/" ? "w-[16%]" : "w-[4%] overflow-hidden"
         } border border-l-2 h-[100vh] flex-col items-center py-[24px]`}
       >
         <div className="flex flex-col w-[80%]">
@@ -203,10 +203,10 @@ const Layout = (props) => {
                     <img
                       src={item.type === "register" ? Register : Feedback}
                       alt="icon"
-                      className="w-[24px] h-[24px]"
+                      className={`${path == '/' ? '`w-[24px] h-[24px]' : 'w-[20px] h-[20px]'}`}
                     />
                   </div>
-                  <div>
+                  <div className={`${path == '/' ? 'block' : 'hidden opacity-0 group-hover:block group-hover:opacity-100'}`}>
                     <p className="text-xs font-normal text-textColor">
                       {item.comment}
                     </p>

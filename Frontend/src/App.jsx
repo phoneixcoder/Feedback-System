@@ -7,6 +7,7 @@ import Loading from "./Components/Loader/Loading";
 import Layout from "./Components/Layout/Layout";
 import Login from "./Pages/Login/Login";
 import Course from "./Pages/Course/Course";
+import ProtectedRoute from "./ProtectedRoute";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -22,7 +23,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/feedback/course",
-    element: <Course/>
+    element: <ProtectedRoute children={<Course/>} />
   }
 ]);
 
