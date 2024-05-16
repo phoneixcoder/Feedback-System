@@ -50,6 +50,7 @@ const Layout = (props) => {
       id: 3,
       name: "Subject Feedback",
       img: All,
+      link: "/feedback/course"
     },
     {
       id: 4,
@@ -67,7 +68,9 @@ const Layout = (props) => {
             : "w-[5%] hover:w-[14%] absolute z-10 bg-white"
         } border border-r-2 h-[100vh] flex flex-col items-center py-[24px] px-5 transition-all ease-in-out duration-300 group-hover:duration-800`}
       >
-        <div className="flex gap-4 items-center w-full">
+        <div className="flex gap-4 items-center w-full cursor-pointer" onClick={() => {
+          window.location.href = '/'
+        }}>
           <img
             src={Logo}
             alt="Logo"
@@ -99,7 +102,9 @@ const Layout = (props) => {
                 className={`flex relative h-[40px] justify-start cursor-pointer`}
                 onClick={() => {
                   setActive(key);
+                  window.location.href = ele.link
                 }}
+                key={key}
               >
                 <div
                   className={`w-[5px] h-[80%] top-[4px] left-[2.5px] absolute bg-black rounded-full ${

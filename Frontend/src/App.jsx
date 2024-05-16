@@ -2,7 +2,7 @@ import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./Pages/Home/Home";
 import Signup from "./Pages/SignUp/Signup";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Loading from "./Components/Loader/Loading";
 import Layout from "./Components/Layout/Layout";
 import Login from "./Pages/Login/Login";
@@ -11,7 +11,7 @@ import ProtectedRoute from "./ProtectedRoute";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <div>Hello world!</div>,
+    element: <Home />,
   },
   {
     path: "/register",
